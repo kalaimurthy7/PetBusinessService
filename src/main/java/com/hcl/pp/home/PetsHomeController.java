@@ -3,6 +3,8 @@ package com.hcl.pp.home;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -22,26 +24,27 @@ public class PetsHomeController {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	@Autowired	
-	public PetsHomeController(RestTemplate restTemplate) {
-		this.restTemplate = restTemplate;
-	}
-	
 	@RequestMapping("/getAllPets")
 	public List<Pet> getAllpets(){
-		List<Pet> pets = restTemplate.exchange("http://localhost:7071/pets/getAllPets", HttpMethod.GET, null, new ParameterizedTypeReference<List<Pet>>(){}).getBody();
+		List<Pet> pets = restTemplate.exchange("http://pet-domainservice/pets/getAllPets", HttpMethod.GET, null, new ParameterizedTypeReference<List<Pet>>(){}).getBody();
 		return pets;
 	}
 	
 	@RequestMapping("/{petid}")
 	public Pet home(@PathVariable long petid) {
-		Pet pet = restTemplate.exchange("http://localhost:7071/pets/{petid}", HttpMethod.GET, null, new ParameterizedTypeReference<Pet>() {}, petid).getBody();
+		Pet pet = restTemplate.exchange("http://pet-domainservice/pets/{petid}", HttpMethod.GET, null, new ParameterizedTypeReference<Pet>() {}, petid).getBody();
 		return pet;
 	}
 	
 	@PostMapping(value = "/addPet", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public String addPet(@RequestBody Pet pet) {
-		return restTemplate.postForObject("http://localhost:7071/pets/addPet", pet, String.class);
+		return restTemplate.postForObject("http://pet-domainservice/pets/addPet", pet, String.class);
 	}
+	
+	@Bean
+    @LoadBalanced
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 	
 }
