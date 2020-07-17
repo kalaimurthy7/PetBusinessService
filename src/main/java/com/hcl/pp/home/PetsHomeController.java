@@ -1,5 +1,6 @@
 package com.hcl.pp.home;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.hcl.pp.model.Pet;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @RestController
 @RequestMapping("/pets")
@@ -25,6 +27,7 @@ public class PetsHomeController {
 	RestTemplate restTemplate;
 	
 	@RequestMapping("/getAllPets")
+	@HystrixCommand(fallbackMethod = "getFallbackAllpets")
 	public List<Pet> getAllpets(){
 		List<Pet> pets = restTemplate.exchange("http://pet-domainservice/pets/getAllPets", HttpMethod.GET, null, new ParameterizedTypeReference<List<Pet>>(){}).getBody();
 		return pets;
@@ -46,5 +49,9 @@ public class PetsHomeController {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+	
+	public List<Pet> getFallbackAllpets(){
+		return Arrays.asList(new Pet("no name",0,"no place",null));
+	}
 	
 }
